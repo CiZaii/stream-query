@@ -13,7 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 name: Database Tests
 
 on:
@@ -55,6 +54,17 @@ jobs:
         ports:
           - 5432:5432
 
+      # Add OceanBase service
+      oceanbase:
+        image: oceanbase/enterprise:4.0.0 # Use appropriate OceanBase image
+        env:
+          OB_ROOT_PASSWORD: stream-query
+          OB_SYS_PASSWORD: stream-query
+        ports:
+          - 2881:2881  # Adjust if needed based on OceanBase config
+          - 2882:2882
+          - 2883:2883
+
     steps:
       - uses: actions/checkout@v2
       - name: Cache Maven packages
@@ -78,3 +88,14 @@ jobs:
           PGPASSWORD=stream-query psql -h localhost -U stream-query -d stream-query -p 5432 -a -f stream-plugin/stream-plugin-mybatis-plus/src/test/resources/sql/pgsql/data.sql
       - name: Run PostgreSQL Tests
         run: mvn test -Dspring.profiles.active=pgsql
+
+      # Add steps for OceanBase
+      - name: Execute OceanBase schema and data scripts
+        run: |
+          # Assuming you have OB client tools installed in the image
+          obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -A < stream-plugin/stream-plugin-mybatis-plus/src/test/resources/sql/oceanbase/schema.sql 
+          obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -A < stream-plugin/stream-plugin-mybatis-plus/src/test/resources/sql/oceanbase/data.sql 
+
+      - name: Run OceanBase Tests
+        run: mvn test -Dspring.profiles.active=oceanbase  # Assuming you have an 'oceanbase' profile
+
