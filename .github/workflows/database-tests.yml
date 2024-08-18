@@ -85,28 +85,19 @@ jobs:
           sudo docker pull oceanbase/oceanbase-ce:latest
 
           # Run OceanBase container
-          sudo docker run --name oceanbase \ 
-          -e OB_ROOT_PASSWORD=stream-query \
-          -e OB_SYS_PASSWORD=stream-query \
-          -e MODE=mini \ 
-          -d -p 2881:2881 oceanbase/oceanbase-ce:latest
+          sudo docker run --name oceanbase \
+            -e OB_ROOT_PASSWORD=stream-query \
+            -e OB_SYS_PASSWORD=stream-query \
+            -e MODE=mini \
+            -d -p 2881:2881 oceanbase/oceanbase-ce:latest
+
+          # Wait for OceanBase to start
+          sleep 30
 
           # Execute schema and data scripts inside the container
           sudo docker exec -i oceanbase obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -A < stream-plugin/stream-plugin-mybatis-plus/src/test/resources/sql/oceanbase/schema.sql
           sudo docker exec -i oceanbase obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -A < stream-plugin/stream-plugin-mybatis-plus/src/test/resources/sql/oceanbase/data.sql
-      # Add steps for OceanBase
-      - name: Execute OceanBase schema and data scripts
-        run: |
-          # Check if obclient is installed
-          if ! command -v obclient &> /dev/null; then
-            echo "obclient not found, installing..."
-            apt-get update
-            apt-get install -y oceanbase-client
-          fi
-          
-          # Execute schema and data scripts
-          obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -A < stream-plugin/stream-plugin-mybatis-plus/src/test/resources/sql/oceanbase/schema.sql 
-          obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -A < stream-plugin/stream-plugin-mybatis-plus/src/test/resources/sql/oceanbase/data.sql
+
       - name: Run OceanBase Tests
         run: mvn test -Dspring.profiles.active=oceanbase  # Assuming you have an 'oceanbase' profile
 
