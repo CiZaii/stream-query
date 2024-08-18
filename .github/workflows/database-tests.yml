@@ -100,9 +100,31 @@ jobs:
             sleep 10
           done
 
-          # Execute schema and data scripts inside the container
+          # Create the database if it doesn't exist
+          sudo docker exec -i oceanbase obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -e "CREATE DATABASE IF NOT EXISTS stream-query;"
+
+          # Select the database before executing scripts
+          sudo docker exec -i oceanbase obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -e "USE stream-query;"
+
+          # Execute schema script inside the container
           sudo docker exec -i oceanbase obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -A < stream-plugin/stream-plugin-mybatis-plus/src/test/resources/sql/oceanbase/schema.sql
+
+          # Check if schema script executed successfully
+          if [ $? -ne 0 ]; then
+            echo "Error executing schema script. Please check the script content and database permissions."
+            exit 1
+          fi
+
+          # Execute data script inside the container
           sudo docker exec -i oceanbase obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -A < stream-plugin/stream-plugin-mybatis-plus/src/test/resources/sql/oceanbase/data.sql
+
+          # Check if data script executed successfully
+          if [ $? -ne 0 ]; then
+            echo "Error executing data script. Please check the script content and database permissions."
+            exit 1
+          fi
+
+          echo "OceanBase schema and data scripts executed successfully."
 
       - name: Run OceanBase Tests
         run: mvn test -Dspring.profiles.active=oceanbase  # Assuming you have an 'oceanbase' profile
