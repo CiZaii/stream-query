@@ -79,18 +79,21 @@ jobs:
       - name: Run PostgreSQL Tests
         run: mvn test -Dspring.profiles.active=pgsql
 
-      - name: Execute OceanBase schema and data scripts
+      - name: Execute OceanBase schema and data scripts using Docker
         run: |
-          # Check if obclient is installed
-          if ! command -v obclient &> /dev/null; then
-            echo "obclient not found, installing..."
-            sudo apt-get update
-            sudo apt-get install -y oceanbase-client
-          fi
+          # Pull OceanBase Docker image
+          sudo docker pull oceanbase/oceanbase-ce:latest
 
-          # Execute schema and data scripts
-          sudo obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -A < stream-plugin/stream-plugin-mybatis-plus/src/test/resources/sql/oceanbase/schema.sql 
-          sudo obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -A < stream-plugin/stream-plugin-mybatis-plus/src/test/resources/sql/oceanbase/data.sql
+          # Run OceanBase container
+          sudo docker run --name oceanbase \ 
+          -e OB_ROOT_PASSWORD=stream-query \
+          -e OB_SYS_PASSWORD=stream-query \
+          -e MODE=mini \ 
+          -d -p 2881:2881 oceanbase/oceanbase-ce:latest
+
+          # Execute schema and data scripts inside the container
+          sudo docker exec -i oceanbase obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -A < stream-plugin/stream-plugin-mybatis-plus/src/test/resources/sql/oceanbase/schema.sql
+          sudo docker exec -i oceanbase obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -A < stream-plugin/stream-plugin-mybatis-plus/src/test/resources/sql/oceanbase/data.sql
       # Add steps for OceanBase
       - name: Execute OceanBase schema and data scripts
         run: |
