@@ -86,13 +86,11 @@ jobs:
 
           # Run OceanBase container
           sudo docker run --name oceanbase \
-            -e OB_ROOT_PASSWORD=stream-query \
-            -e OB_SYS_PASSWORD=stream-query \
             -e MODE=mini \
             -d -p 2881:2881 oceanbase/oceanbase-ce:latest
 
           # Wait for OceanBase to start and initialize
-          sleep 60
+          sleep 300
 
           # Test connection to OceanBase
           until sudo docker exec -i oceanbase obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -e "SELECT 1"; do
