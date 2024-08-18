@@ -67,7 +67,8 @@ jobs:
           - 2883:2883
 
         # 在启动容器时安装 obclient
-        command: /bin/bash -c "apt-get update && apt-get install -y oceanbase-client && /entrypoint.sh"
+        entrypoint: /bin/bash -c "apt-get update && apt-get install -y oceanbase-client && /entrypoint.sh"
+
 
     steps:
       - uses: actions/checkout@v2
