@@ -60,7 +60,8 @@ jobs:
         env:
           OB_ROOT_PASSWORD: stream-query
           OB_SYS_PASSWORD: stream-query
-          MODE: normal # or 'mini' if you want a smaller footprint
+          MODE: mini
+            # or 'mini' if you want a smaller footprint
         ports:
           - 2881:2881  # Adjust if needed based on OceanBase config
           - 2882:2882
