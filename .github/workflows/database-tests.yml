@@ -60,12 +60,14 @@ jobs:
         env:
           OB_ROOT_PASSWORD: stream-query
           OB_SYS_PASSWORD: stream-query
-          MODE: mini
-            # or 'mini' if you want a smaller footprint
+          MODE: mini   # 使用 MODE=mini 来指定部署 mini 模式
         ports:
           - 2881:2881  # Adjust if needed based on OceanBase config
           - 2882:2882
           - 2883:2883
+
+        # 在启动容器时安装 obclient
+        command: /bin/bash -c "apt-get update && apt-get install -y oceanbase-client && /entrypoint.sh"
 
     steps:
       - uses: actions/checkout@v2
