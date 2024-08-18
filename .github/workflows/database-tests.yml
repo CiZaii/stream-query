@@ -56,7 +56,7 @@ jobs:
 
       # Add OceanBase service
       oceanbase:
-        image: oceanbase/ce:latest  # Use OceanBase CE latest image
+        image: oceanbase/oceanbase-ce
         env:
           OB_ROOT_PASSWORD: stream-query
           OB_SYS_PASSWORD: stream-query
