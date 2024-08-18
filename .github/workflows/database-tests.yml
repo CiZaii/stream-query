@@ -91,8 +91,14 @@ jobs:
             -e MODE=mini \
             -d -p 2881:2881 oceanbase/oceanbase-ce:latest
 
-          # Wait for OceanBase to start
-          sleep 30
+          # Wait for OceanBase to start and initialize
+          sleep 60
+
+          # Test connection to OceanBase
+          until sudo docker exec -i oceanbase obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -e "SELECT 1"; do
+            echo "Waiting for OceanBase to be ready..."
+            sleep 10
+          done
 
           # Execute schema and data scripts inside the container
           sudo docker exec -i oceanbase obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -A < stream-plugin/stream-plugin-mybatis-plus/src/test/resources/sql/oceanbase/schema.sql
