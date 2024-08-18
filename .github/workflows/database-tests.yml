@@ -79,17 +79,18 @@ jobs:
       - name: Run PostgreSQL Tests
         run: mvn test -Dspring.profiles.active=pgsql
 
-      - name: Start OceanBase service
+      - name: Execute OceanBase schema and data scripts
         run: |
-            docker run \
-              -p 2881:2881 \
-              --name oceanbase \
-              -e OB_ROOT_PASSWORD=stream-query \
-              -e OB_SYS_PASSWORD=stream-query \
-              -e MODE=mini \
-              -d \
-              oceanbase/oceanbase-ce:latest \
-              /bin/bash -c "apt-get update && apt-get install -y oceanbase-client && /entrypoint.sh"
+          # Check if obclient is installed
+          if ! command -v obclient &> /dev/null; then
+            echo "obclient not found, installing..."
+            sudo apt-get update
+            sudo apt-get install -y oceanbase-client
+          fi
+
+          # Execute schema and data scripts
+          sudo obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -A < stream-plugin/stream-plugin-mybatis-plus/src/test/resources/sql/oceanbase/schema.sql 
+          sudo obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -A < stream-plugin/stream-plugin-mybatis-plus/src/test/resources/sql/oceanbase/data.sql
       # Add steps for OceanBase
       - name: Execute OceanBase schema and data scripts
         run: |
