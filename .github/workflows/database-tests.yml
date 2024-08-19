@@ -97,8 +97,7 @@ jobs:
           done
 
           # Set up user permissions
-          sudo docker exec -i obstandalone obclient -h127.0.0.1 -P2881 -uroot -p12345678 -e "ALTER USER ROOT@'%' IDENTIFIED BY 'stream-query';"
-          sudo docker exec -i obstandalone obclient -h127.0.0.1 -P2881 -uroot -p12345678 -e "ALTER USER ROOT@localhost IDENTIFIED BY 'stream-query';"
+          sudo docker exec -i obstandalone obclient -h127.0.0.1 -P2881 -uroot -p12345678 -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'stream-query' WITH GRANT OPTION;"
 
           # Create the database if it doesn't exist
           sudo docker exec -i obstandalone obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -e "CREATE DATABASE IF NOT EXISTS stream-query;"
