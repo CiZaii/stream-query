@@ -85,31 +85,29 @@ jobs:
           sudo docker pull oceanbase/oceanbase-ce:latest
 
           # Run OceanBase container
-          sudo docker run --name oceanbase \
-            -e MODE=mini \
-            -d -p 2881:2881 oceanbase/oceanbase-ce:latest
+          docker run -p 2881:2881 --name obstandalone -e MINI_MODE=0 -e ROOT_PASSWORD=12345678 -d oceanbase/oceanbase-ce
 
           # Wait for OceanBase to start and initialize
           sleep 300
 
           # Test connection to OceanBase
-          until sudo docker exec -i oceanbase obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -e "SELECT 1"; do
+          until sudo docker exec -i obstandalone obclient -h127.0.0.1 -P2881 -uroot -p12345678 -e "SELECT 1"; do
             echo "Waiting for OceanBase to be ready..."
             sleep 10
           done
 
           # Set up user permissions
-          sudo docker exec -i oceanbase obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -e "ALTER USER ROOT@'%' IDENTIFIED BY 'stream-query';"
-          sudo docker exec -i oceanbase obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -e "ALTER USER ROOT@localhost IDENTIFIED BY 'stream-query';"
+          sudo docker exec -i obstandalone obclient -h127.0.0.1 -P2881 -uroot -p12345678 -e "ALTER USER ROOT@'%' IDENTIFIED BY 'stream-query';"
+          sudo docker exec -i obstandalone obclient -h127.0.0.1 -P2881 -uroot -p12345678 -e "ALTER USER ROOT@localhost IDENTIFIED BY 'stream-query';"
 
           # Create the database if it doesn't exist
-          sudo docker exec -i oceanbase obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -e "CREATE DATABASE IF NOT EXISTS stream-query;"
+          sudo docker exec -i obstandalone obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -e "CREATE DATABASE IF NOT EXISTS stream-query;"
 
           # Select the database before executing scripts
-          sudo docker exec -i oceanbase obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -e "USE stream-query;"
+          sudo docker exec -i obstandalone obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -e "USE stream-query;"
 
           # Execute schema script inside the container
-          sudo docker exec -i oceanbase obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -A < stream-plugin/stream-plugin-mybatis-plus/src/test/resources/sql/oceanbase/schema.sql
+          sudo docker exec -i obstandalone obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -A < stream-plugin/stream-plugin-mybatis-plus/src/test/resources/sql/oceanbase/schema.sql
 
           # Check if schema script executed successfully
           if [ $? -ne 0 ]; then
@@ -118,7 +116,7 @@ jobs:
           fi
 
           # Execute data script inside the container
-          sudo docker exec -i oceanbase obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -A < stream-plugin/stream-plugin-mybatis-plus/src/test/resources/sql/oceanbase/data.sql
+          sudo docker exec -i obstandalone obclient -h127.0.0.1 -P2881 -uroot@sys -pstream-query -A < stream-plugin/stream-plugin-mybatis-plus/src/test/resources/sql/oceanbase/data.sql
 
           # Check if data script executed successfully
           if [ $? -ne 0 ]; then
